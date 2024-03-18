@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import InputBox from './components/InputBox'
 import useCurrencyRate from './hooks/useCurrencyRate'
 function App() {
@@ -7,12 +7,11 @@ function App() {
   const [to, setTo] = useState('inr');
   const [amount, setAmount] = useState();
   const [convertedAmount, setConvertedAmount] = useState();
-  const [convertText, setConvertText] = useState('Convert');
 
-  const data = useCurrencyRate(from);
+  const currencyInfo = useCurrencyRate(from);
 
   const convert = () => {
-    const currencyValue = data[to];
+    const currencyValue = currencyInfo[to];
     const result = currencyValue * amount;
     setConvertedAmount(result)
   }
@@ -20,8 +19,10 @@ function App() {
   const swap = () => {
     setTo(from)
     setFrom(to)
-    convert();
+
   }
+  useCallback(convert, [amount, convertedAmount, from, to, convert])
+  useEffect(convert, [amount, from, to, convert, swap])
   return <>
 
     <div
@@ -48,8 +49,8 @@ function App() {
                 onAmountChange={(value) => (setAmount(value))}
                 amountDisabled={false}
 
-                currencyOptions={Object.keys(data)}
-                onCurrencyChange={(currenC) => setFrom(currenC)}
+                currencyOptions={Object.keys(currencyInfo)}
+                onCurrencyChange={(currenC) => (setFrom(currenC))}
 
 
               />
@@ -68,9 +69,9 @@ function App() {
                 label="To"
                 amount={convertedAmount}
                 currency={to}
-                currencyOptions={Object.keys(data)}
+                currencyOptions={Object.keys(currencyInfo)}
                 amountDisabled={true}
-                onCurrencyChange={(currenC) => setTo(currenC)}
+                onCurrencyChange={(curr) => (setTo(curr))}
 
               />
             </div>
